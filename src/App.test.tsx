@@ -4,9 +4,10 @@ import { describe, expect, it } from 'vitest';
 import App from './App';
 
 describe('App', () => {
-  it('renders the scaffold shell', () => {
+  it('renders the FaceScore shell with a fixture report', () => {
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: /Welcome to Tauri \+ React/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'FaceScore' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Strong baseline/i })).toBeInTheDocument();
   });
 });
