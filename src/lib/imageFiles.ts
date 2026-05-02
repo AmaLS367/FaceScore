@@ -5,6 +5,7 @@ export const ACCEPTED_IMAGE_TYPES: ClaudeImagePayload['media_type'][] = [
   'image/png',
   'image/webp',
 ];
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export type ImageValidationResult = { ok: true } | { ok: false; message: string };
 
@@ -14,6 +15,38 @@ export function validateImageFile(file: File): ImageValidationResult {
   }
 
   return { ok: true };
+}
+
+export async function toClaudeImagePayload(file: File): Promise<ClaudeImagePayload> {
+  const validation = validateImageFile(file);
+  if (!validation.ok) {
+    throw new Error(validation.message);
+  }
+
+  if (file.size > MAX_IMAGE_BYTES) {
+    throw new Error('Use an image up to 5 MB.');
+  }
+
+  const dataUrl = await readAsDataUrl(file);
+  const [, data] = dataUrl.split(',');
+
+  if (!data) {
+    throw new Error('Could not read image data.');
+  }
+
+  return {
+    media_type: file.type as ClaudeImagePayload['media_type'],
+    data,
+  };
+}
+
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read image data.'));
+    reader.onload = () => resolve(String(reader.result));
+    reader.readAsDataURL(file);
+  });
 }
 
 export function formatFileSize(bytes: number): string {
