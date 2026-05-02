@@ -240,6 +240,22 @@ input {
   min-width: 0;
 }
 
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.report-actions button {
+  border: 0;
+  border-radius: 8px;
+  background: #203b32;
+  color: #f8faf7;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 10px 14px;
+}
+
 .empty-report {
   display: flex;
   min-height: 520px;
@@ -247,6 +263,33 @@ input {
   justify-content: center;
   border-radius: 8px;
   padding: 34px;
+}
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  .no-print,
+  .control-panel {
+    display: none !important;
+  }
+
+  .app-shell {
+    min-height: auto;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .workspace {
+    display: block;
+    max-width: none;
+  }
+
+  .report-surface {
+    border: 0;
+    box-shadow: none;
+  }
 }
 
 .empty-report h2 {

@@ -96,7 +96,18 @@ function App() {
         </aside>
 
         <section className="report-stage" aria-live="polite">
-          {report ? <ReportView report={report} /> : <EmptyReportState status={analysisStatus} />}
+          {report ? (
+            <>
+              <div className="report-actions no-print">
+                <button onClick={() => window.print()} type="button">
+                  Export PDF
+                </button>
+              </div>
+              <ReportView report={report} />
+            </>
+          ) : (
+            <EmptyReportState status={analysisStatus} />
+          )}
         </section>
       </div>
     </main>

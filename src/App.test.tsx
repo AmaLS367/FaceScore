@@ -25,6 +25,7 @@ describe('App', () => {
   });
 
   it('runs the full mocked analysis workflow', async () => {
+    vi.spyOn(window, 'print').mockImplementation(() => undefined);
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       new Response(JSON.stringify({ content: [{ type: 'text', text: JSON.stringify(fixtureReport) }] }), {
         status: 200,
@@ -40,5 +41,7 @@ describe('App', () => {
 
     expect(await screen.findByRole('heading', { name: /Strong baseline/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Analyze face/i })).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: /Export PDF/i }));
+    expect(window.print).toHaveBeenCalledOnce();
   });
 });
