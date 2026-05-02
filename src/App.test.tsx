@@ -22,6 +22,8 @@ describe('App', () => {
     render(<App />);
 
     expect(screen.getByRole('button', { name: /Analyze face/i })).toBeDisabled();
+    expect(screen.getByText('Photo pending')).toBeInTheDocument();
+    expect(screen.getByText('API key pending')).toBeInTheDocument();
   });
 
   it('runs the full mocked analysis workflow', async () => {

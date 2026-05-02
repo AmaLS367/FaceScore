@@ -89,6 +89,11 @@ function App() {
               <img alt="Selected face preview" src={previewUrl} />
             </figure>
           ) : null}
+          <div className="status-panel" aria-label="Analysis readiness">
+            <span className={selectedFile ? 'is-ready' : ''}>{selectedFile ? 'Photo ready' : 'Photo pending'}</span>
+            <span className={apiKey ? 'is-ready' : ''}>{apiKey ? 'API key saved' : 'API key pending'}</span>
+            <span className={report ? 'is-ready' : ''}>{report ? 'Report ready' : 'Report pending'}</span>
+          </div>
           <button className="analyze-button" disabled={!canAnalyze} onClick={runAnalysis} type="button">
             {analysisStatus === 'loading' ? 'Analyzing...' : 'Analyze face'}
           </button>
