@@ -10,4 +10,10 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'FaceScore' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Strong baseline/i })).toBeInTheDocument();
   });
+
+  it('keeps analysis disabled until an API key and image are present', () => {
+    render(<App />);
+
+    expect(screen.getByRole('button', { name: /Analyze face/i })).toBeDisabled();
+  });
 });
