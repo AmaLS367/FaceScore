@@ -76,8 +76,6 @@ The API key is stored locally in this app's browser storage. No API key is commi
 - PDF export uses print-friendly HTML/CSS instead of a native PDF engine in the MVP.
 
 ## References
-
-
 - Tauri v2: https://v2.tauri.app/start/
 - Anthropic Vision: https://docs.anthropic.com/en/docs/build-with-claude/vision
 - Anthropic Messages API: https://docs.anthropic.com/en/api/messages
