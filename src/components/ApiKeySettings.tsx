@@ -9,34 +9,49 @@ export function ApiKeySettings({ apiKey, onChange }: ApiKeySettingsProps) {
   const [draft, setDraft] = useState(apiKey);
 
   return (
-    <section className="api-key-settings">
-      <h2>Claude API</h2>
-      <label>
-        Anthropic API key
-        <input
-          autoComplete="off"
-          onChange={(event) => setDraft(event.currentTarget.value)}
-          placeholder="sk-ant-..."
-          type="password"
-          value={draft}
-        />
-      </label>
-      <div className="button-row">
-        <button onClick={() => onChange(draft.trim())} type="button">
-          Save API key
-        </button>
-        <button
-          className="secondary-button"
-          onClick={() => {
-            setDraft('');
-            onChange('');
-          }}
-          type="button"
-        >
-          Clear API key
-        </button>
+    <div className="sfield">
+      <div className="sfield-info">
+        <div className="sfield-label">Anthropic API Key</div>
+        <div className="sfield-desc">
+          {apiKey 
+            ? 'Key is saved locally. You can clear it at any time.' 
+            : 'Enter your API key to enable Claude Vision analysis.'}
+        </div>
       </div>
-      <p>{apiKey ? 'Key saved locally on this device.' : 'Paste your own key before running analysis.'}</p>
-    </section>
+      <div className="sfield-control">
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input
+            autoComplete="off"
+            className="s-input"
+            onChange={(event) => setDraft(event.currentTarget.value)}
+            placeholder="sk-ant-..."
+            type="password"
+            value={draft}
+            style={{ width: '240px' }}
+            aria-label="Anthropic API key"
+          />
+          <button 
+            className="btn-primary" 
+            onClick={() => onChange(draft.trim())} 
+            type="button"
+            style={{ width: 'auto', padding: '10px 16px' }}
+            aria-label="Save API key"
+          >
+            Save
+          </button>
+          <button
+            className="danger-btn"
+            onClick={() => {
+              setDraft('');
+              onChange('');
+            }}
+            type="button"
+            aria-label="Clear API key"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -3,7 +3,7 @@ import { parseAnalysisResponse } from '../domain/parseAnalysisResponse';
 
 const ANTHROPIC_MESSAGES_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
-const MODEL = 'claude-sonnet-4-20250514';
+const MODEL = 'claude-sonnet-4-6';
 
 interface AnalyzeFaceInput {
   apiKey: string;
@@ -69,23 +69,21 @@ export async function analyzeFace({ apiKey, image, prompt = buildFaceAnalysisPro
 }
 
 export function buildFaceAnalysisPrompt(): string {
-  return `Analyze this face photo for grooming, presentation, symmetry, proportions, skin presentation, and style.
+  return `Create a clean, minimal, high-end facial beauty report based on this photo. Use a black-on-white design with thin lines, rounded cards, and a luxury aesthetic. Include a simple contour line drawing of the face, an honest attractiveness analysis (symmetry, proportions, bone structure, skin, etc.), clear scores, strengths, areas for improvement, and actionable grooming/style recommendations. Keep it data-driven, visually refined, and not overly flattering.
 
-Return only valid JSON. Do not wrap it in markdown. The JSON must match this exact shape:
+Return ONLY valid JSON matching this exact shape:
 {
-  "overallScore": { "value": 0-100, "label": "short label", "summary": "2 sentence summary" },
+  "overallScore": { "value": 0-100, "label": "string", "summary": "string" },
   "scoreCategories": [
-    { "id": "symmetry", "label": "Symmetry", "value": 0-100, "summary": "short summary", "details": ["specific detail"] },
-    { "id": "proportions", "label": "Proportions", "value": 0-100, "summary": "short summary", "details": ["specific detail"] },
-    { "id": "skin", "label": "Skin", "value": 0-100, "summary": "short summary", "details": ["specific detail"] },
-    { "id": "grooming", "label": "Grooming", "value": 0-100, "summary": "short summary", "details": ["specific detail"] },
-    { "id": "style", "label": "Style", "value": 0-100, "summary": "short summary", "details": ["specific detail"] }
+    { "id": "symmetry", "label": "Symmetry", "value": 0-100, "summary": "string", "details": ["string"] },
+    { "id": "proportions", "label": "Proportions", "value": 0-100, "summary": "string", "details": ["string"] },
+    { "id": "skin", "label": "Skin", "value": 0-100, "summary": "string", "details": ["string"] },
+    { "id": "grooming", "label": "Grooming", "value": 0-100, "summary": "string", "details": ["string"] },
+    { "id": "style", "label": "Style", "value": 0-100, "summary": "string", "details": ["string"] }
   ],
-  "strengths": ["specific strength"],
-  "recommendations": [{ "title": "action title", "priority": "high|medium|low", "detail": "specific advice" }],
-  "groomingNotes": ["specific grooming note"],
-  "styleNotes": ["specific style note"]
-}
-
-Be direct and practical. Do not infer identity, ethnicity, age, health status, or attractiveness as a moral judgment.`;
+  "strengths": ["string"],
+  "recommendations": [{ "title": "string", "priority": "high|medium|low", "detail": "string" }],
+  "groomingNotes": ["string"],
+  "styleNotes": ["string"]
+}`;
 }

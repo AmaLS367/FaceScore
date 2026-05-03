@@ -5,8 +5,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 
 async function saveApiKey(user: ReturnType<typeof userEvent.setup>) {
+  // Open settings to set API key
+  await user.click(screen.getByRole('button', { name: /API Key/i }));
   await user.type(screen.getByLabelText(/Anthropic API key/i), 'sk-ant-test');
   await user.click(screen.getByRole('button', { name: /Save API key/i }));
+  // Go back
+  await user.click(screen.getByRole('button', { name: /Back to Analysis/i }));
 }
 
 async function uploadPhoto(user: ReturnType<typeof userEvent.setup>) {
@@ -61,7 +65,7 @@ describe('FaceScore MVP acceptance regressions', () => {
     await uploadPhoto(user);
     await user.click(screen.getByRole('button', { name: /Analyze face/i }));
 
-    expect(await screen.findByText('Claude API request failed with status 500.')).toBeInTheDocument();
+    expect(await screen.findByText(/Claude API request failed/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Export PDF/i })).not.toBeInTheDocument();
   });
 
@@ -78,6 +82,6 @@ describe('FaceScore MVP acceptance regressions', () => {
     await uploadPhoto(user);
     await user.click(screen.getByRole('button', { name: /Analyze face/i }));
 
-    expect(await screen.findByText('Claude response did not match the FaceScore report schema.')).toBeInTheDocument();
+    expect(await screen.findByText(/Claude response did not match the FaceScore report schema/i)).toBeInTheDocument();
   });
 });

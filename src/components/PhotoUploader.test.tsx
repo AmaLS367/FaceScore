@@ -8,7 +8,7 @@ describe('PhotoUploader', () => {
   it('passes an accepted image to onSelect', async () => {
     const onSelect = vi.fn();
     const user = userEvent.setup();
-    render(<PhotoUploader error={null} file={null} onClear={vi.fn()} onError={vi.fn()} onSelect={onSelect} />);
+    render(<PhotoUploader file={null} onClear={vi.fn()} onError={vi.fn()} onSelect={onSelect} previewUrl={null} />);
 
     const file = new File(['image'], 'face.jpg', { type: 'image/jpeg' });
     await user.upload(screen.getByLabelText(/Choose face photo/i), file);
@@ -20,17 +20,17 @@ describe('PhotoUploader', () => {
     const onClear = vi.fn();
     const file = new File(['image'], 'face.webp', { type: 'image/webp' });
 
-    render(<PhotoUploader error={null} file={file} onClear={onClear} onError={vi.fn()} onSelect={vi.fn()} />);
+    render(<PhotoUploader file={file} onClear={onClear} onError={vi.fn()} onSelect={vi.fn()} previewUrl={null} />);
 
     expect(screen.getByText('face.webp')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: /Clear selected photo/i }));
+    await userEvent.click(screen.getByRole('button', { name: '×' }));
     expect(onClear).toHaveBeenCalledOnce();
   });
 
   it('reports unsupported files', async () => {
     const onError = vi.fn();
     const user = userEvent.setup({ applyAccept: false });
-    render(<PhotoUploader error={null} file={null} onClear={vi.fn()} onError={onError} onSelect={vi.fn()} />);
+    render(<PhotoUploader file={null} onClear={vi.fn()} onError={onError} onSelect={vi.fn()} previewUrl={null} />);
 
     await user.upload(screen.getByLabelText(/Choose face photo/i), new File(['text'], 'notes.txt', { type: 'text/plain' }));
 
