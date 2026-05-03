@@ -1150,3 +1150,92 @@ body,
   font-size: 11px;
   font-weight: 500;
 }
+
+/* ── PRINT / PDF EXPORT ── */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm 18mm;
+  }
+
+  /* Force light mode for clean printing */
+  :root {
+    --ink: #0a0a0a !important;
+    --ink-light: #3a3a3a !important;
+    --ink-muted: #888 !important;
+    --rule: #d8d8d8 !important;
+    --rule-light: #efefef !important;
+    --bg: #ffffff !important;
+    --card: #ffffff !important;
+  }
+
+  /* Unfold all scroll containers */
+  html,
+  body,
+  #root {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  .shell {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide chrome */
+  .topbar,
+  .panel-left,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Make right panel fill the page */
+  .workspace {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .panel-right {
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+    background: #fff !important;
+  }
+
+  /* Strip report wrapper padding */
+  .report-wrap {
+    padding: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  .report-body {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  /* Preserve filled colors */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Avoid mid-card page breaks */
+  .metric-card,
+  .rec-card,
+  .potential-card,
+  .list-card,
+  .two-col,
+  .hero-grid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .section-title {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+}
