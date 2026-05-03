@@ -628,14 +628,16 @@ body,
   margin-bottom: 16px;
 }
 .overall-big-score {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Jost', sans-serif;
   font-size: 84px;
-  font-weight: 300;
+  font-weight: 200;
   line-height: 1;
   margin-bottom: 8px;
 }
 .overall-big-score span {
+  font-family: 'Jost', sans-serif;
   font-size: 24px;
+  font-weight: 300;
   color: var(--ink-muted);
   margin-left: 4px;
 }
@@ -687,8 +689,9 @@ body,
   margin-bottom: 10px;
 }
 .metric-score {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Jost', sans-serif;
   font-size: 28px;
+  font-weight: 200;
   line-height: 1;
 }
 .metric-denom {
@@ -817,8 +820,9 @@ body,
   flex-shrink: 0;
 }
 .potential-score-num {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Jost', sans-serif;
   font-size: 56px;
+  font-weight: 200;
   line-height: 1;
 }
 .potential-score-label {
