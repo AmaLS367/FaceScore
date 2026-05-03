@@ -30,6 +30,7 @@ export async function analyzeFace({ apiKey, image, prompt = buildFaceAnalysisPro
     response = await tauriFetch(ANTHROPIC_MESSAGES_URL, {
       method: 'POST',
       headers: {
+        'anthropic-dangerous-direct-browser-access': 'true',
         'anthropic-version': ANTHROPIC_VERSION,
         'content-type': 'application/json',
         'x-api-key': apiKey,
