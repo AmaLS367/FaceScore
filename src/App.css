@@ -470,9 +470,9 @@ body,
   border-radius: 12px;
 }
 .empty-step-n {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 16px;
-  font-style: italic;
+  font-family: 'Jost', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
   color: var(--ink-muted);
   flex-shrink: 0;
 }
