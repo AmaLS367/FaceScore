@@ -383,13 +383,13 @@ body,
 .api-nudge {
   margin-top: 16px;
   padding: 12px;
-  background: #fff9e6;
-  border: 1px solid #ffeeba;
+  background: var(--rule-light);
+  border: 1px solid var(--rule);
   border-radius: 10px;
 }
 .api-nudge-text {
   font-size: 10px;
-  color: #856404;
+  color: var(--ink-light);
   line-height: 1.5;
 }
 .api-nudge-link {
@@ -1027,6 +1027,7 @@ body,
   border: 1px solid var(--rule);
   border-radius: 8px;
   background: var(--card);
+  color: var(--ink);
   font: inherit;
   font-size: 12px;
 }
@@ -1036,6 +1037,7 @@ body,
   border: 1px solid var(--rule);
   border-radius: 8px;
   background: var(--card);
+  color: var(--ink);
   font: inherit;
   font-size: 12px;
 }

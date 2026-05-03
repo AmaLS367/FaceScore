@@ -35,10 +35,10 @@ function App() {
       document.documentElement.style.setProperty('--ink', '#f0ece6');
       document.documentElement.style.setProperty('--ink-light', '#b8b0a6');
       document.documentElement.style.setProperty('--ink-muted', '#6a6460');
-      document.documentElement.style.setProperty('--rule', '#2e2a28');
-      document.documentElement.style.setProperty('--rule-light', '#232020');
+      document.documentElement.style.setProperty('--rule', '#484038');
+      document.documentElement.style.setProperty('--rule-light', '#2e2a28');
       document.documentElement.style.setProperty('--bg', '#0f0d0c');
-      document.documentElement.style.setProperty('--card', '#181614');
+      document.documentElement.style.setProperty('--card', '#1e1b18');
     } else {
       document.documentElement.style.setProperty('--ink', '#0a0a0a');
       document.documentElement.style.setProperty('--ink-light', '#3a3a3a');
