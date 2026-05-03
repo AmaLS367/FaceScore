@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const scoreCategorySchema = z.object({
   id: z.enum(['symmetry', 'proportions', 'skin', 'grooming', 'style']),
   label: z.string().min(1),
-  value: z.number().min(0).max(100),
+  value: z.coerce.number().min(0).max(100),
   summary: z.string().min(1),
   details: z.array(z.string().min(1)).min(1),
 });
@@ -16,7 +16,7 @@ export const recommendationSchema = z.object({
 
 export const analysisReportSchema = z.object({
   overallScore: z.object({
-    value: z.number().min(0).max(100),
+    value: z.coerce.number().min(0).max(100),
     label: z.string().min(1),
     summary: z.string().min(1),
   }),

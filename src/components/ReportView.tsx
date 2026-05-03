@@ -61,7 +61,7 @@ export function ReportView({ report, imageUrl, onReset }: ReportViewProps) {
             <div className="overall-block">
               <div className="overall-block-label">Overall Presentation Score</div>
               <div className="overall-big-score">
-                {Math.round(report.overallScore.value / 10)}<span>/10</span>
+                {(report.overallScore.value / 10).toFixed(1)}<span>/10</span>
               </div>
               <div className="overall-tier">Tier: {report.overallScore.label}</div>
               <div className="overall-desc">{report.overallScore.summary}</div>
@@ -76,7 +76,7 @@ export function ReportView({ report, imageUrl, onReset }: ReportViewProps) {
             <div key={category.id} className="metric-card">
               <div className="metric-name">{category.label}</div>
               <div className="metric-score-row">
-                <div className="metric-score">{Math.round(category.value / 10)}</div>
+                <div className="metric-score">{(category.value / 10).toFixed(1)}</div>
                 <div className="metric-denom">/10</div>
               </div>
               <div className="metric-bar-bg">
@@ -137,7 +137,7 @@ export function ReportView({ report, imageUrl, onReset }: ReportViewProps) {
             </div>
           </div>
           <div className="potential-score">
-            <div className="potential-score-num">{Math.round(potentialScore / 10)}</div>
+            <div className="potential-score-num">{(potentialScore / 10).toFixed(1)}</div>
             <div className="potential-score-label">Potential</div>
           </div>
         </div>

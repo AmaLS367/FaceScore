@@ -10,12 +10,12 @@ describe('ReportView', () => {
 
     expect(screen.getByText(/Strong baseline/i)).toBeInTheDocument();
     
-    // Check overall score specifically in its container
+    // Check overall score specifically in its container (82 / 10 = 8.2)
     const overallScoreContainer = screen.getByText(/Overall Presentation Score/i).parentElement;
     if (overallScoreContainer) {
-       expect(within(overallScoreContainer).getByText('8')).toBeInTheDocument();
+       expect(within(overallScoreContainer).getByText('8.2')).toBeInTheDocument();
     } else {
-       expect(screen.getAllByText('8').length).toBeGreaterThan(0);
+       expect(screen.getAllByText('8.2').length).toBeGreaterThan(0);
     }
 
     expect(screen.getByText('Symmetry')).toBeInTheDocument();
