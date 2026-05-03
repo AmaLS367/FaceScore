@@ -179,7 +179,3 @@ Licensed under the Apache License, Version 2.0 (the "License"). See the [LICENSE
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=footer"/>
 
 </div>
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=footer"/>
-
-</div>
