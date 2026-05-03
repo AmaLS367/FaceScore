@@ -17,6 +17,7 @@ const glyphs = ['✧', '◇', '◎', '▽', '○'];
 
 export function ReportView({ report, imageUrl, onReset }: ReportViewProps) {
   const [exported, setExported] = useState(false);
+
   const handleExport = () => {
     setExported(true);
     setTimeout(() => setExported(false), 2400);
