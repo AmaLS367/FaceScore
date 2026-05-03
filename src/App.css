@@ -858,14 +858,32 @@ body,
   gap: 12px;
 }
 .btn-new {
-  background: none;
+  background: transparent;
   border: 1px solid var(--rule);
+  color: var(--ink);
   padding: 8px 16px;
   font: inherit;
   font-size: 9px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   cursor: pointer;
+  transition: border-color var(--transition);
+}
+.btn-new:hover {
+  border-color: var(--ink);
+}
+
+.cost-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 10px;
+  padding: 4px 9px;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  border: 1px solid var(--rule-light);
+  border-radius: 4px;
 }
 .btn-export {
   background: var(--ink);

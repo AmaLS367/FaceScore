@@ -160,7 +160,8 @@ function App() {
                   onSelect={handleFileSelect}
                   previewUrl={previewUrl}
                 />
-                
+                <div className="cost-badge">≈ $0.02 – $0.04 per analysis</div>
+
                 <div className="status-row">
                   <div className={`status-dot ${st.dot}`}></div>
                   <span className={`status-text ${st.cls}`}>{st.text}</span>
