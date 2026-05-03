@@ -1,8 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import * as tauriHttp from '@tauri-apps/plugin-http';
 
 import type { ClaudeImagePayload } from '../domain/analysis';
 import { fixtureReport } from '../domain/fixtureReport';
 import { analyzeFace } from './anthropicClient';
+
+vi.mock('@tauri-apps/plugin-http', () => ({
+  fetch: vi.fn(),
+}));
 
 const image: ClaudeImagePayload = {
   media_type: 'image/jpeg',
@@ -11,17 +16,18 @@ const image: ClaudeImagePayload = {
 
 describe('analyzeFace', () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it('calls Anthropic Messages API and parses a valid report', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ content: [{ type: 'text', text: JSON.stringify(fixtureReport) }] }), {
-        status: 200,
+    const fetchMock = vi.mocked(tauriHttp.fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        content: [{ type: 'tool_use', name: 'generate_report', input: fixtureReport }],
       }),
-    );
+    } as any);
 
-    const report = await analyzeFace({ apiKey: 'sk-ant-test', image });
+    const report = await analyzeFace({ apiKey: 'sk-ant-testkey-1234567890', image });
 
     expect(report.overallScore.value).toBe(82);
     expect(fetchMock).toHaveBeenCalledWith(
@@ -29,28 +35,34 @@ describe('analyzeFace', () => {
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
-          'anthropic-dangerous-direct-browser-access': 'true',
           'anthropic-version': '2023-06-01',
           'content-type': 'application/json',
-          'x-api-key': 'sk-ant-test',
+          'x-api-key': 'sk-ant-testkey-1234567890',
         }),
       }),
     );
   });
 
   it('throws a clear error for API failures', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('rate limited', { status: 429 }));
+    vi.mocked(tauriHttp.fetch).mockResolvedValue({
+      ok: false,
+      status: 429,
+      json: async () => ({ error: { message: 'rate limited' } }),
+    } as any);
 
-    await expect(analyzeFace({ apiKey: 'sk-ant-test', image })).rejects.toThrow(
-      'Claude API request failed with status 429.',
+    await expect(analyzeFace({ apiKey: 'sk-ant-testkey-1234567890', image })).rejects.toThrow(
+      'Rate limit exceeded or insufficient quota. Please try again later.',
     );
   });
 
   it('throws a clear error when Claude returns no text block', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ content: [] }), { status: 200 }));
+    vi.mocked(tauriHttp.fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ content: [] }),
+    } as any);
 
-    await expect(analyzeFace({ apiKey: 'sk-ant-test', image })).rejects.toThrow(
-      'Claude response did not include a text report.',
+    await expect(analyzeFace({ apiKey: 'sk-ant-testkey-1234567890', image })).rejects.toThrow(
+      'Analysis service response was empty or incorrectly formatted.',
     );
   });
 });

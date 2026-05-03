@@ -13,12 +13,12 @@ describe('parseAnalysisResponse', () => {
   });
 
   it('rejects malformed JSON', () => {
-    expect(() => parseAnalysisResponse('{bad json')).toThrow('Claude returned malformed JSON.');
+    expect(() => parseAnalysisResponse('{bad json')).toThrow('Response is a string but not valid JSON');
   });
 
   it('rejects JSON that does not match the report schema', () => {
     expect(() => parseAnalysisResponse(JSON.stringify({ overallScore: 100 }))).toThrow(
-      'Claude response did not match the FaceScore report schema.',
+      'Analysis response missing required fields or has invalid data format.',
     );
   });
 });

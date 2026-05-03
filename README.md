@@ -119,7 +119,7 @@ npm run build
 
 ## 📖 Usage
 
-1. **Configure API:** Open the app, paste your Anthropic API key into the settings field, and save it. *(It is stored safely in local storage).*
+1. **Configure API:** Open the app, paste your Anthropic API key into the settings field, and save it. *(For maximum security, the key is kept in memory only and will be cleared when you close the app).*
 2. **Upload:** Select a JPG, PNG, or WebP image (max 5 MB).
 3. **Analyze:** Click `Analyze face` and wait for Claude Vision to process the image.
 4. **Review:** Read through your structured appearance report.
@@ -147,7 +147,8 @@ FaceScore/
 
 ## ⚙️ Implementation Notes
 
-- **Direct API Access:** The app calls `https://api.anthropic.com/v1/messages` directly from the Tauri webview. This is enabled via the `anthropic-dangerous-direct-browser-access: true` header since there is no backend server.
+- **Secure API Routing:** The app calls `https://api.anthropic.com/v1/messages` via Tauri's native HTTP plugin (`@tauri-apps/plugin-http`). This routes the request securely through the Rust backend, completely bypassing the browser context. The `anthropic-dangerous-direct-browser-access` header has been removed.
+- **Strict Security:** A strict Content Security Policy (CSP) is enforced via `tauri.conf.json` with no `unsafe-inline` scripts allowed, and JavaScript prototypes are frozen. LocalStorage has been explicitly removed in favor of ephemeral session memory for API keys.
 - **Model Choice:** The default model is `claude-sonnet-4-20250514`.
 - **Validation:** Claude is explicitly prompted to return *only* valid JSON. The app then strictly validates this payload using Zod before any rendering occurs.
 - **PDF Generation:** We use customized print-media CSS queries linked to the native OS print dialog to generate PDFs, keeping the bundle size small without needing a heavy PDF rendering engine.
@@ -173,6 +174,11 @@ Licensed under the Apache License, Version 2.0 (the "License"). See the [LICENSE
 ### 📚 References
 - [Tauri v2 Documentation](https://v2.tauri.app/start/)
 - [Anthropic Vision Docs](https://docs.anthropic.com/en/docs/build-with-claude/vision)
+- [Anthropic Messages API](https://docs.anthropic.com/en/api/messages)
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=footer"/>
+
+</div>sion)
 - [Anthropic Messages API](https://docs.anthropic.com/en/api/messages)
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=footer"/>

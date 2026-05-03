@@ -1,26 +1,31 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import * as tauriHttp from '@tauri-apps/plugin-http';
 
 import App from './App';
+
+vi.mock('@tauri-apps/plugin-http', () => ({
+  fetch: vi.fn(),
+}));
 
 async function saveApiKey(user: ReturnType<typeof userEvent.setup>) {
   // Open settings to set API key
   await user.click(screen.getByRole('button', { name: /API Key/i }));
-  await user.type(screen.getByLabelText(/Anthropic API key/i), 'sk-ant-test');
+  await user.type(screen.getByLabelText(/Anthropic API key/i), 'sk-ant-testkey-1234567890');
   await user.click(screen.getByRole('button', { name: /Save API key/i }));
   // Go back
   await user.click(screen.getByRole('button', { name: /Back to Analysis/i }));
 }
 
 async function uploadPhoto(user: ReturnType<typeof userEvent.setup>) {
-  await user.upload(screen.getByLabelText(/Choose face photo/i), new File(['face'], 'face.jpg', { type: 'image/jpeg' }));
+  const jpegMagic = new Uint8Array([0xFF, 0xD8, 0xFF]);
+  await user.upload(screen.getByLabelText(/Choose face photo/i), new File([jpegMagic, new Uint8Array(10)], 'face.jpg', { type: 'image/jpeg' }));
 }
 
 describe('FaceScore MVP acceptance regressions', () => {
   afterEach(() => {
-    localStorage.clear();
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it('does not show PDF export before a successful analysis', () => {
@@ -57,7 +62,12 @@ describe('FaceScore MVP acceptance regressions', () => {
   });
 
   it('shows a clear API error and leaves the report empty on Claude API failure', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('server error', { status: 500 }));
+    vi.mocked(tauriHttp.fetch).mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: { message: 'server error' } }),
+    } as any);
+
     const user = userEvent.setup();
     render(<App />);
 
@@ -65,16 +75,18 @@ describe('FaceScore MVP acceptance regressions', () => {
     await uploadPhoto(user);
     await user.click(screen.getByRole('button', { name: /Analyze face/i }));
 
-    expect(await screen.findByText(/Claude API request failed/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Analysis service rejected the request/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Export PDF/i })).not.toBeInTheDocument();
   });
 
   it('shows a schema error for invalid Claude JSON', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ content: [{ type: 'text', text: JSON.stringify({ overallScore: 100 }) }] }), {
-        status: 200,
+    vi.mocked(tauriHttp.fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        content: [{ type: 'tool_use', name: 'generate_report', input: { overallScore: 100 } }],
       }),
-    );
+    } as any);
+
     const user = userEvent.setup();
     render(<App />);
 
@@ -82,6 +94,6 @@ describe('FaceScore MVP acceptance regressions', () => {
     await uploadPhoto(user);
     await user.click(screen.getByRole('button', { name: /Analyze face/i }));
 
-    expect(await screen.findByText(/Claude response did not match the FaceScore report schema/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Failed to interpret the analysis data. The photo might be unclear/i)).toBeInTheDocument();
   });
 });

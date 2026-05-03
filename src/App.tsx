@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import './App.css';
 import { ApiKeySettings } from './components/ApiKeySettings';
 import { PhotoUploader } from './components/PhotoUploader';
@@ -50,26 +50,46 @@ function App() {
     }
   }, [darkMode]);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const lastAnalysisTimeRef = useRef<number>(0);
+
   async function runAnalysis() {
     if (!selectedFile || !apiKey || status === 'analyzing') {
       return;
     }
 
+    const now = Date.now();
+    if (now - lastAnalysisTimeRef.current < 3000) {
+      return; // Rate limit: prevent spamming requests
+    }
+    lastAnalysisTimeRef.current = now;
+
     setStatus('analyzing');
     setAnalysisError(null);
 
+    abortControllerRef.current = new AbortController();
+
     try {
       const image = await toClaudeImagePayload(selectedFile);
-      const nextReport = await analyzeFace({ apiKey, image });
+      const nextReport = await analyzeFace({ apiKey, image, signal: abortControllerRef.current.signal });
       setReport(nextReport);
       setStatus('success');
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       setAnalysisError(error instanceof Error ? error.message : 'Analysis failed.');
       setStatus('error');
+    } finally {
+      abortControllerRef.current = null;
     }
   }
 
   const handleReset = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
     setSelectedFile(null);
     setUploadError(null);
     if (previewUrl) URL.revokeObjectURL(previewUrl);

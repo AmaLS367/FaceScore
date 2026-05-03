@@ -1,5 +1,6 @@
 import type { AnalysisReport, ClaudeImagePayload } from '../domain/analysis';
 import { parseAnalysisResponse } from '../domain/parseAnalysisResponse';
+import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 
 const ANTHROPIC_MESSAGES_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
@@ -9,67 +10,144 @@ interface AnalyzeFaceInput {
   apiKey: string;
   image: ClaudeImagePayload;
   prompt?: string;
+  signal?: AbortSignal;
 }
 
-interface AnthropicTextBlock {
-  type: 'text';
-  text: string;
+interface AnthropicToolUseBlock {
+  type: 'tool_use';
+  id: string;
+  name: string;
+  input: unknown;
 }
 
 interface AnthropicMessageResponse {
-  content?: Array<AnthropicTextBlock | { type: string }>;
+  content?: Array<{ type: string; [key: string]: unknown } | AnthropicToolUseBlock>;
 }
 
-export async function analyzeFace({ apiKey, image, prompt = buildFaceAnalysisPrompt() }: AnalyzeFaceInput): Promise<AnalysisReport> {
-  const response = await fetch(ANTHROPIC_MESSAGES_URL, {
-    method: 'POST',
-    headers: {
-      'anthropic-dangerous-direct-browser-access': 'true',
-      'anthropic-version': ANTHROPIC_VERSION,
-      'content-type': 'application/json',
-      'x-api-key': apiKey,
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 4096,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: image.media_type,
-                data: image.data,
+export async function analyzeFace({ apiKey, image, prompt = buildFaceAnalysisPrompt(), signal }: AnalyzeFaceInput): Promise<AnalysisReport> {
+  let response;
+  try {
+    response = await tauriFetch(ANTHROPIC_MESSAGES_URL, {
+      method: 'POST',
+      headers: {
+        'anthropic-version': ANTHROPIC_VERSION,
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+      },
+      signal,
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 4096,
+        tools: [
+          {
+            name: "generate_report",
+            description: "Output the facial analysis report in a structured format.",
+            input_schema: {
+              type: "object",
+              properties: {
+                overallScore: {
+                  type: "object",
+                  properties: {
+                    value: { type: "number" },
+                    label: { type: "string" },
+                    summary: { type: "string" }
+                  },
+                  required: ["value", "label", "summary"]
+                },
+                scoreCategories: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string", enum: ["symmetry", "proportions", "skin", "grooming", "style"] },
+                      label: { type: "string" },
+                      value: { type: "number" },
+                      summary: { type: "string" },
+                      details: { type: "array", items: { type: "string" } }
+                    },
+                    required: ["id", "label", "value", "summary", "details"]
+                  }
+                },
+                strengths: { type: "array", items: { type: "string" } },
+                recommendations: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      title: { type: "string" },
+                      priority: { type: "string", enum: ["high", "medium", "low"] },
+                      detail: { type: "string" }
+                    },
+                    required: ["title", "priority", "detail"]
+                  }
+                },
+                groomingNotes: { type: "array", items: { type: "string" } },
+                styleNotes: { type: "array", items: { type: "string" } }
               },
-            },
-            {
-              type: 'text',
-              text: prompt,
-            },
-          ],
-        },
-      ],
-    }),
-  });
+              required: ["overallScore", "scoreCategories", "strengths", "recommendations", "groomingNotes", "styleNotes"]
+            }
+          }
+        ],
+        tool_choice: { type: "tool", name: "generate_report" },
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: {
+                  type: 'base64',
+                  media_type: image.media_type,
+                  data: image.data,
+                },
+              },
+              {
+                type: 'text',
+                text: prompt,
+              },
+            ],
+          },
+        ],
+      }),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw error;
+    }
+    throw new Error('Network error. Please check your connection and try again.');
+  }
 
   if (!response.ok) {
-    throw new Error(`Claude API request failed with status ${response.status}.`);
+    if (response.status === 401 || response.status === 403) {
+      throw new Error('Authentication failed. Please check your Anthropic API key.');
+    } else if (response.status === 429) {
+      throw new Error('Rate limit exceeded or insufficient quota. Please try again later.');
+    }
+    throw new Error(`Analysis service rejected the request (${response.status}). Please try again later.`);
   }
 
-  const payload = (await response.json()) as AnthropicMessageResponse;
-  const textBlock = payload.content?.find((block): block is AnthropicTextBlock => block.type === 'text');
-
-  if (!textBlock) {
-    throw new Error('Claude response did not include a text report.');
+  let payload: AnthropicMessageResponse;
+  try {
+    payload = await response.json() as AnthropicMessageResponse;
+  } catch (error) {
+    throw new Error('Analysis service returned an invalid response format.');
   }
 
-  return parseAnalysisResponse(textBlock.text);
+  const toolCall = payload.content?.find((block): block is AnthropicToolUseBlock => block.type === 'tool_use' && block.name === 'generate_report');
+
+  if (!toolCall || !toolCall.input) {
+    throw new Error('Analysis service response was empty or incorrectly formatted.');
+  }
+
+  try {
+    return parseAnalysisResponse(toolCall.input);
+  } catch (error) {
+    throw new Error('Failed to interpret the analysis data. The photo might be unclear.');
+  }
 }
 
 export function buildFaceAnalysisPrompt(): string {
-  return `Create a clean, minimal, high-end facial beauty report based on this photo. Use a black-on-white design with thin lines, rounded cards, and a luxury aesthetic. Include a simple contour line drawing of the face (as a single-line string using \\n for newlines), an honest attractiveness analysis (symmetry, proportions, bone structure, skin, etc.), clear scores, strengths, areas for improvement, and actionable grooming/style recommendations. Keep it data-driven, visually refined, and not overly flattering.
+  return `Create a clean, minimal, high-end facial beauty report based on this photo. Use a black-on-white design with thin lines, rounded cards, and a luxury aesthetic. Include an honest attractiveness analysis (symmetry, proportions, bone structure, skin, etc.), clear scores, strengths, areas for improvement, and actionable grooming/style recommendations. Keep it data-driven, visually refined, and not overly flattering.
 
 SCORING RULES (CRITICAL):
 - Before scoring, assess the photo context:
@@ -81,22 +159,5 @@ SCORING RULES (CRITICAL):
 - Use one decimal place for all scores (e.g., 52.4, 78.1, 44.9).
 - Mandatory Deductions:
   * Facial fat or lack of bone definition MUST significantly lower the "Proportions" score.
-  * Any skin clarity issues, texture, or inflammation MUST significantly lower the "Skin" score.
-
-CRITICAL: Your entire response must be a single valid JSON object. No text before it. No text after it. No markdown. No explanation. Start your response with { and end with }
-Return ONLY valid JSON. Ensure all strings are properly escaped. No unescaped newlines in JSON strings.
-{
-  "overallScore": { "value": 0.0-100.0, "label": "string", "summary": "string" },
-  "scoreCategories": [
-    { "id": "symmetry", "label": "Symmetry", "value": 0.0-100.0, "summary": "string", "details": ["string"] },
-    { "id": "proportions", "label": "Proportions", "value": 0.0-100.0, "summary": "string", "details": ["string"] },
-    { "id": "skin", "label": "Skin", "value": 0.0-100.0, "summary": "string", "details": ["string"] },
-    { "id": "grooming", "label": "Grooming", "value": 0.0-100.0, "summary": "string", "details": ["string"] },
-    { "id": "style", "label": "Style", "value": 0.0-100.0, "summary": "string", "details": ["string"] }
-  ],
-  "strengths": ["string"],
-  "recommendations": [{ "title": "string", "priority": "high|medium|low", "detail": "string" }],
-  "groomingNotes": ["string"],
-  "styleNotes": ["string"]
-}`;
+  * Any skin clarity issues, texture, or inflammation MUST significantly lower the "Skin" score.`;
 }

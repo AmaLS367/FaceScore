@@ -1,7 +1,12 @@
-const API_KEY_STORAGE_KEY = 'facescore.anthropicApiKey';
+let memoryApiKey = '';
 
 export function loadApiKey(): string {
-  return localStorage.getItem(API_KEY_STORAGE_KEY) ?? '';
+  return memoryApiKey;
+}
+
+export function isValidApiKeyFormat(key: string): boolean {
+  // Best practice: Anthropic keys start with sk-ant- (or specifically sk-ant-api03-)
+  return /^sk-ant-[a-zA-Z0-9\-_]{16,128}$/.test(key);
 }
 
 export function saveApiKey(apiKey: string): void {
@@ -12,9 +17,13 @@ export function saveApiKey(apiKey: string): void {
     return;
   }
 
-  localStorage.setItem(API_KEY_STORAGE_KEY, trimmed);
+  if (!isValidApiKeyFormat(trimmed)) {
+    throw new Error('Invalid API key format');
+  }
+
+  memoryApiKey = trimmed;
 }
 
 export function clearApiKey(): void {
-  localStorage.removeItem(API_KEY_STORAGE_KEY);
+  memoryApiKey = '';
 }

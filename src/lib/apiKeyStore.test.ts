@@ -8,15 +8,13 @@ describe('apiKeyStore', () => {
   });
 
   it('saves and loads a trimmed API key', () => {
-    saveApiKey('  sk-ant-test  ');
-
-    expect(loadApiKey()).toBe('sk-ant-test');
+    saveApiKey('  sk-ant-testkey-1234567890  ');
+    expect(loadApiKey()).toBe('sk-ant-testkey-1234567890');
   });
 
   it('clears the stored API key', () => {
-    saveApiKey('sk-ant-test');
+    saveApiKey('sk-ant-testkey-1234567890');
     clearApiKey();
-
     expect(loadApiKey()).toBe('');
   });
 });

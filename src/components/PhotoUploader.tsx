@@ -13,10 +13,10 @@ export function PhotoUploader({ file, onClear, onError, onSelect, previewUrl }: 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
 
-  function handleFile(candidate: File | undefined) {
+  async function handleFile(candidate: File | undefined) {
     if (!candidate) return;
 
-    const validation = validateImageFile(candidate);
+    const validation = await validateImageFile(candidate);
     if (!validation.ok) {
       onError(validation.message);
       return;

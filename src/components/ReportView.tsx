@@ -135,6 +135,16 @@ export function ReportView({ report, imageUrl, onReset }: ReportViewProps) {
             <div className="potential-body">
               By following the recommended grooming and style adjustments consistently over the next year, 
               there is significant opportunity to enhance facial balance and presentation quality.
+              {report.groomingNotes?.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <strong>Grooming Focus:</strong> {report.groomingNotes.join(' ')}
+                </div>
+              )}
+              {report.styleNotes?.length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  <strong>Style Alignment:</strong> {report.styleNotes.join(' ')}
+                </div>
+              )}
             </div>
           </div>
           <div className="potential-score">
