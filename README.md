@@ -172,14 +172,13 @@ Licensed under the Apache License, Version 2.0 (the "License"). See the [LICENSE
 <div align="center">
 
 ### 📚 References
-- [Tauri v2 Documentation](https://v2.tauri.app/start/)
-- [Anthropic Vision Docs](https://docs.anthropic.com/en/docs/build-with-claude/vision)
-- [Anthropic Messages API](https://docs.anthropic.com/en/api/messages)
+[Tauri v2 Documentation](https://v2.tauri.app/start/)
+[Anthropic Vision Docs](https://docs.anthropic.com/en/docs/build-with-claude/vision)
+[Anthropic Messages API](https://docs.anthropic.com/en/api/messages)
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=footer"/>
 
-</div>sion)
-- [Anthropic Messages API](https://docs.anthropic.com/en/api/messages)
+</div>
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=100&section=footer"/>
 
