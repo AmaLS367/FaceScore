@@ -39,6 +39,7 @@ describe('analyzeFace', () => {
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
+          'anthropic-dangerous-direct-browser-access': 'true',
           'anthropic-version': '2023-06-01',
           'content-type': 'application/json',
           'x-api-key': 'sk-ant-testkey-1234567890',
@@ -46,7 +47,6 @@ describe('analyzeFace', () => {
         body: expect.stringContaining('"model":"claude-sonnet-4-6"'),
       }),
     );
-    expect(fetchMock.mock.calls[0]?.[1]?.headers).not.toHaveProperty('anthropic-dangerous-direct-browser-access');
   });
 
   it('throws a clear error for API failures', async () => {
@@ -59,6 +59,22 @@ describe('analyzeFace', () => {
     await expect(analyzeFace({ apiKey: 'sk-ant-testkey-1234567890', image })).rejects.toThrow(
       'Rate limit exceeded or insufficient quota. Please try again later.',
     );
+  });
+
+  it('includes the Anthropic authentication error detail when available', async () => {
+    vi.mocked(tauriHttp.fetch).mockResolvedValue(mockResponse({
+      ok: false,
+      status: 401,
+      json: async () => ({ error: { message: 'invalid x-api-key' } }),
+    }));
+
+    await expect(analyzeFace({ apiKey: ' sk-ant-testkey-1234567890 ', image })).rejects.toThrow(
+      'Authentication failed: invalid x-api-key',
+    );
+
+    expect(vi.mocked(tauriHttp.fetch).mock.calls[0]?.[1]?.headers).toMatchObject({
+      'x-api-key': 'sk-ant-testkey-1234567890',
+    });
   });
 
   it('throws a clear error when Claude returns no text block', async () => {

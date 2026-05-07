@@ -24,15 +24,22 @@ interface AnthropicMessageResponse {
   content?: Array<{ type: string; [key: string]: unknown } | AnthropicToolUseBlock>;
 }
 
+interface AnthropicErrorResponse {
+  error?: {
+    message?: string;
+  };
+}
+
 export async function analyzeFace({ apiKey, image, prompt = buildFaceAnalysisPrompt(), signal }: AnalyzeFaceInput): Promise<AnalysisReport> {
   let response;
   try {
     response = await tauriFetch(ANTHROPIC_MESSAGES_URL, {
       method: 'POST',
       headers: {
+        'anthropic-dangerous-direct-browser-access': 'true',
         'anthropic-version': ANTHROPIC_VERSION,
         'content-type': 'application/json',
-        'x-api-key': apiKey,
+        'x-api-key': apiKey.trim(),
       },
       signal,
       body: JSON.stringify({
@@ -126,8 +133,13 @@ export async function analyzeFace({ apiKey, image, prompt = buildFaceAnalysisPro
   }
 
   if (!response.ok) {
+    const serviceMessage = await readServiceErrorMessage(response);
     if (response.status === 401 || response.status === 403) {
-      throw new Error('Authentication failed. Please check your Anthropic API key.');
+      throw new Error(
+        serviceMessage
+          ? `Authentication failed: ${serviceMessage}`
+          : 'Authentication failed. Please check your Anthropic API key.',
+      );
     } else if (response.status === 429) {
       throw new Error('Rate limit exceeded or insufficient quota. Please try again later.');
     }
@@ -170,4 +182,13 @@ SCORING RULES (CRITICAL):
 - Mandatory Deductions:
   * Facial fat or lack of bone definition MUST significantly lower the "Proportions" score.
   * Any skin clarity issues, texture, or inflammation MUST significantly lower the "Skin" score.`;
+}
+
+async function readServiceErrorMessage(response: Response): Promise<string | null> {
+  try {
+    const payload = await response.json() as AnthropicErrorResponse;
+    return payload.error?.message || null;
+  } catch {
+    return null;
+  }
 }
