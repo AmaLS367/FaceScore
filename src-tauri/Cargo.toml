@@ -1,6 +1,6 @@
 [package]
 name = "facescore"
-version = "0.1.1"
+version = "0.1.0"
 description = "A Tauri desktop app for structured face appearance reports"
 authors = ["AmaLS367"]
 edition = "2021"

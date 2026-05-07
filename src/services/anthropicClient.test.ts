@@ -43,7 +43,7 @@ describe('analyzeFace', () => {
           'content-type': 'application/json',
           'x-api-key': 'sk-ant-testkey-1234567890',
         }),
-        body: expect.stringContaining('"model":"claude-sonnet-4-20250514"'),
+        body: expect.stringContaining('"model":"claude-sonnet-4-6"'),
       }),
     );
     expect(fetchMock.mock.calls[0]?.[1]?.headers).not.toHaveProperty('anthropic-dangerous-direct-browser-access');
