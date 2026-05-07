@@ -77,14 +77,15 @@ describe('analyzeFace', () => {
     });
   });
 
-  it('throws a clear error when Claude returns no text block', async () => {
+  it('renders a fallback report when Claude returns no tool block', async () => {
     vi.mocked(tauriHttp.fetch).mockResolvedValue(mockResponse({
       ok: true,
       json: async () => ({ content: [] }),
     }));
 
-    await expect(analyzeFace({ apiKey: 'sk-ant-testkey-1234567890', image })).rejects.toThrow(
-      'Analysis service response was empty or incorrectly formatted.',
-    );
+    const report = await analyzeFace({ apiKey: 'sk-ant-testkey-1234567890', image });
+
+    expect(report.overallScore.label).toBe('Photo-based estimate');
+    expect(report.scoreCategories).toHaveLength(5);
   });
 });

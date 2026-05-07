@@ -12,14 +12,19 @@ describe('parseAnalysisResponse', () => {
     expect(report.recommendations[0]?.title).toBe('Define the grooming baseline');
   });
 
-  it('rejects malformed JSON', () => {
-    expect(() => parseAnalysisResponse('{bad json')).toThrow('Response is a string but not valid JSON');
+  it('builds a fallback report from malformed JSON text', () => {
+    const report = parseAnalysisResponse('low quality photo but still assess it');
+
+    expect(report.overallScore.summary).toContain('low quality photo');
+    expect(report.scoreCategories).toHaveLength(5);
   });
 
-  it('rejects JSON that does not match the report schema', () => {
-    expect(() => parseAnalysisResponse(JSON.stringify({ overallScore: 100 }))).toThrow(
-      'Analysis response missing required fields or has invalid data format.',
-    );
+  it('builds a fallback report from partial JSON', () => {
+    const report = parseAnalysisResponse(JSON.stringify({ overallScore: 42 }));
+
+    expect(report.overallScore.value).toBe(50);
+    expect(report.scoreCategories).toHaveLength(5);
+    expect(report.recommendations).toHaveLength(1);
   });
 
   it('ignores extra score categories returned by the model', () => {

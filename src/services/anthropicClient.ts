@@ -154,16 +154,9 @@ export async function analyzeFace({ apiKey, image, prompt = buildFaceAnalysisPro
   }
 
   const toolCall = payload.content?.find((block): block is AnthropicToolUseBlock => block.type === 'tool_use' && block.name === 'generate_report');
+  const textBlock = payload.content?.find((block): block is { type: 'text'; text: string } => block.type === 'text' && typeof block.text === 'string');
 
-  if (!toolCall || !toolCall.input) {
-    throw new Error('Analysis service response was empty or incorrectly formatted.');
-  }
-
-  try {
-    return parseAnalysisResponse(toolCall.input);
-  } catch (error) {
-    throw new Error('Failed to interpret the analysis data. The photo might be unclear.', { cause: error });
-  }
+  return parseAnalysisResponse(toolCall?.input || textBlock?.text || payload);
 }
 
 export function buildFaceAnalysisPrompt(): string {

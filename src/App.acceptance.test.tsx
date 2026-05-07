@@ -83,7 +83,7 @@ describe('FaceScore MVP acceptance regressions', () => {
     expect(screen.queryByRole('button', { name: /Export PDF/i })).not.toBeInTheDocument();
   });
 
-  it('shows a schema error for invalid Claude JSON', async () => {
+  it('renders a fallback report for partial Claude JSON', async () => {
     vi.mocked(tauriHttp.fetch).mockResolvedValue(mockResponse({
       ok: true,
       json: async () => ({
@@ -98,6 +98,7 @@ describe('FaceScore MVP acceptance regressions', () => {
     await uploadPhoto(user);
     await user.click(screen.getByRole('button', { name: /Analyze face/i }));
 
-    expect(await screen.findByText(/Failed to interpret the analysis data. The photo might be unclear/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Photo-based estimate/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Export PDF/i })).toBeInTheDocument();
   });
 });
