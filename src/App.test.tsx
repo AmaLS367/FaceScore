@@ -10,6 +10,10 @@ vi.mock('@tauri-apps/plugin-http', () => ({
   fetch: vi.fn(),
 }));
 
+function mockResponse(response: { ok: boolean; status?: number; json: () => Promise<unknown> }): Response {
+  return response as Response;
+}
+
 describe('App', () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -38,12 +42,12 @@ describe('App', () => {
 
   it('runs the full mocked analysis workflow', async () => {
     vi.spyOn(window, 'print').mockImplementation(() => undefined);
-    vi.mocked(tauriHttp.fetch).mockResolvedValue({
+    vi.mocked(tauriHttp.fetch).mockResolvedValue(mockResponse({
       ok: true,
       json: async () => ({
         content: [{ type: 'tool_use', name: 'generate_report', input: fixtureReport }],
       }),
-    } as any);
+    }));
 
     const user = userEvent.setup();
     render(<App />);

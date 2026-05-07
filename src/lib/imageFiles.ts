@@ -22,9 +22,9 @@ export async function validateImageFile(file: File): Promise<ImageValidationResu
   const buffer = await file.slice(0, 12).arrayBuffer();
   const arr = new Uint8Array(buffer);
   
-  let isJpeg = arr[0] === 0xFF && arr[1] === 0xD8 && arr[2] === 0xFF;
-  let isPng = arr[0] === 0x89 && arr[1] === 0x50 && arr[2] === 0x4E && arr[3] === 0x47;
-  let isWebp = arr[0] === 0x52 && arr[1] === 0x49 && arr[2] === 0x46 && arr[3] === 0x46 && 
+  const isJpeg = arr[0] === 0xFF && arr[1] === 0xD8 && arr[2] === 0xFF;
+  const isPng = arr[0] === 0x89 && arr[1] === 0x50 && arr[2] === 0x4E && arr[3] === 0x47;
+  const isWebp = arr[0] === 0x52 && arr[1] === 0x49 && arr[2] === 0x46 && arr[3] === 0x46 && 
                arr[8] === 0x57 && arr[9] === 0x45 && arr[10] === 0x42 && arr[11] === 0x50; // RIFF...WEBP
 
   if (!isJpeg && !isPng && !isWebp) {

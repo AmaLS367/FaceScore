@@ -21,4 +21,29 @@ describe('parseAnalysisResponse', () => {
       'Analysis response missing required fields or has invalid data format.',
     );
   });
+
+  it('ignores extra score categories returned by the model', () => {
+    const report = parseAnalysisResponse({
+      ...fixtureReport,
+      scoreCategories: [
+        ...fixtureReport.scoreCategories,
+        {
+          id: 'bone_structure',
+          label: 'Bone Structure',
+          value: 78,
+          summary: 'Extra category outside the app report schema.',
+          details: ['This should not break the full report.'],
+        },
+      ],
+    });
+
+    expect(report.scoreCategories).toHaveLength(5);
+    expect(report.scoreCategories.map((category) => category.id)).toEqual([
+      'symmetry',
+      'proportions',
+      'skin',
+      'grooming',
+      'style',
+    ]);
+  });
 });

@@ -9,6 +9,10 @@ vi.mock('@tauri-apps/plugin-http', () => ({
   fetch: vi.fn(),
 }));
 
+function mockResponse(response: { ok: boolean; status?: number; json: () => Promise<unknown> }): Response {
+  return response as Response;
+}
+
 async function saveApiKey(user: ReturnType<typeof userEvent.setup>) {
   // Open settings to set API key
   await user.click(screen.getByRole('button', { name: /API Key/i }));
@@ -62,11 +66,11 @@ describe('FaceScore MVP acceptance regressions', () => {
   });
 
   it('shows a clear API error and leaves the report empty on Claude API failure', async () => {
-    vi.mocked(tauriHttp.fetch).mockResolvedValue({
+    vi.mocked(tauriHttp.fetch).mockResolvedValue(mockResponse({
       ok: false,
       status: 500,
       json: async () => ({ error: { message: 'server error' } }),
-    } as any);
+    }));
 
     const user = userEvent.setup();
     render(<App />);
@@ -80,12 +84,12 @@ describe('FaceScore MVP acceptance regressions', () => {
   });
 
   it('shows a schema error for invalid Claude JSON', async () => {
-    vi.mocked(tauriHttp.fetch).mockResolvedValue({
+    vi.mocked(tauriHttp.fetch).mockResolvedValue(mockResponse({
       ok: true,
       json: async () => ({
         content: [{ type: 'tool_use', name: 'generate_report', input: { overallScore: 100 } }],
       }),
-    } as any);
+    }));
 
     const user = userEvent.setup();
     render(<App />);
