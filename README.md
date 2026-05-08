@@ -1,6 +1,8 @@
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,16,20&height=200&section=header&text=FaceScore&fontSize=60&animation=fadeIn&fontAlignY=35&desc=AI-Powered%20Appearance%20Analysis&descAlignY=55&descSize=20"/>
-
 <div align="center">
+
+<p align="center">
+  <img src="public/assets/facescore-social-preview.png" alt="FaceScore - AI-Powered Appearance Analysis" width="100%" />
+</p>
 
 <p align="center">
   <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&center=true&vCenter=true&width=760&lines=Upload+a+photo;Analyze+facial+features;Get+a+structured+report;Export+everything+to+PDF" alt="Typing SVG" />
