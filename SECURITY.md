@@ -21,4 +21,4 @@ We will review the report and attempt to provide a timeline for a fix. Please pr
 - Any suggestions for remediation.
 
 ### Note on API Keys
-FaceScore stores your Anthropic API key locally in your browser/app storage. It is never transmitted to any servers other than Anthropic's official API endpoints. We consider the security of your API key to be of paramount importance.
+FaceScore stores your Anthropic API key in your OS credential store (Windows Credential Manager, macOS Keychain, Linux Secret Service). It is never transmitted to any servers other than Anthropic's official API endpoints, and never exposed to the WebView renderer process. We consider the security of your API key to be of paramount importance.

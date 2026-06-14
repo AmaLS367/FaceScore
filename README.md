@@ -222,7 +222,7 @@ FaceScore/
 ## ⚙️ Technical notes
 
 - Requests go to `https://api.anthropic.com/v1/messages` through Tauri's native HTTP plugin.
-- API keys are stored in memory only and cleared when the app closes.
+- API keys are stored in your OS credential store (Windows Credential Manager, macOS Keychain, Linux Secret Service) and never exposed to the WebView.
 - A strict Content Security Policy is enforced in `tauri.conf.json`.
 - The default model is `claude-sonnet-4-20250514`.
 - Claude is prompted to return valid JSON only.
