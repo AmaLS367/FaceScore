@@ -90,6 +90,12 @@ function App() {
       return;
     }
 
+    if (!navigator.onLine) {
+      setAnalysisError('No internet connection. Please check your network and try again.');
+      setStatus('error');
+      return;
+    }
+
     const now = Date.now();
     if (now - lastAnalysisTimeRef.current < 3000) {
       return; // Rate limit: prevent spamming requests
@@ -121,7 +127,10 @@ function App() {
       if (analysisRunId !== analysisRunIdRef.current) {
         return;
       }
-      setAnalysisError(error instanceof Error ? error.message : 'Analysis failed.');
+      const message = !navigator.onLine
+        ? 'No internet connection. Please check your network and try again.'
+        : (error instanceof Error ? error.message : 'Analysis failed.');
+      setAnalysisError(message);
       setStatus('error');
     }
   }

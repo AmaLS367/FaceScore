@@ -134,4 +134,18 @@ describe('FaceScore MVP acceptance regressions', () => {
     expect(await screen.findByText(/Photo-based estimate/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Export PDF/i })).toBeInTheDocument();
   });
+
+  it('shows a clear offline error when there is no internet connection', async () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await saveApiKey(user);
+    await uploadPhoto(user);
+    await user.click(screen.getByRole('button', { name: /Analyze face/i }));
+
+    expect(screen.getByText('No internet connection. Please check your network and try again.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Export PDF/i })).not.toBeInTheDocument();
+  });
 });
