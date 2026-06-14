@@ -3,7 +3,7 @@ import './App.css';
 import { ApiKeySettings } from './components/ApiKeySettings';
 import { PhotoUploader } from './components/PhotoUploader';
 import { ReportView } from './components/ReportView';
-import type { AnalysisReport } from './domain/analysis';
+import { ANALYSIS_COST, type AnalysisReport } from './domain/analysis';
 import { clearApiKey, hasApiKey, saveApiKey, type ApiKeyStatus } from './lib/apiKeyStore';
 import { toClaudeImagePayload } from './lib/imageFiles';
 import { analyzeFace } from './services/anthropicClient';
@@ -228,7 +228,7 @@ function App() {
                   onSelect={handleFileSelect}
                   previewUrl={previewUrl}
                 />
-                <div className="cost-badge">≈ $0.02 – $0.04 per analysis</div>
+                 <div className="cost-badge">≈ {ANALYSIS_COST.currency}{ANALYSIS_COST.min.toFixed(2)} – {ANALYSIS_COST.currency}{ANALYSIS_COST.max.toFixed(2)} per analysis</div>
 
                 <div className="status-row">
                   <div className={`status-dot ${st.dot}`}></div>
