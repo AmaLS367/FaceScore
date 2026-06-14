@@ -35,9 +35,3 @@ export interface ClaudeImagePayload {
   media_type: 'image/jpeg' | 'image/png' | 'image/webp';
   data: string;
 }
-
-export const ANALYSIS_COST = {
-  min: 0.02,
-  max: 0.04,
-  currency: '$',
-};
