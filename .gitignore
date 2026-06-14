@@ -25,3 +25,15 @@ dist-ssr
 *.sln
 *.sw?
 design/*
+# Added by code-review-graph
+.code-review-graph/
+.cursorrules
+.mcp.json
+.opencode.json
+.windsurfrules
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.claude
+.cursor
+.kiro
