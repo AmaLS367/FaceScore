@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Cache APT packages
-        uses: adeebalharbi/cache-apt-pkgs-action@v2
+        uses: awalsh128/cache-apt-pkgs-action@v1
         with:
           packages: libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
           version: 1.0
