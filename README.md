@@ -224,7 +224,7 @@ FaceScore/
 - Requests go to `https://api.anthropic.com/v1/messages` through Tauri's native HTTP plugin.
 - API keys are stored in your OS credential store (Windows Credential Manager, macOS Keychain, Linux Secret Service) and never exposed to the WebView.
 - A strict Content Security Policy is enforced in `tauri.conf.json`.
-- The default model is `claude-sonnet-4-20250514`.
+- The default model is `claude-sonnet-4-6`.
 - Claude is prompted to return valid JSON only.
 - Every response is validated with Zod before rendering.
 - PDF export uses print-optimized CSS and the native OS print dialog.
