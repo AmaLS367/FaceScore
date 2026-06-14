@@ -85,7 +85,7 @@ describe('App', () => {
       prompt: expect.any(String),
     }));
     expect(JSON.stringify(vi.mocked(invoke).mock.calls.filter(([command]) => command === 'analyze_face'))).not.toContain('sk-ant-');
-    expect(screen.getByRole('button', { name: /Analyze face/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Analyze face/i })).toBeDisabled();
     await user.click(screen.getByRole('button', { name: /Export PDF/i }));
     expect(window.print).toHaveBeenCalledOnce();
   });

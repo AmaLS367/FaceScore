@@ -20,6 +20,16 @@ function App() {
   const [report, setReport] = useState<AnalysisReport | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
+  const [isRateLimited, setIsRateLimited] = useState(false);
+  const rateLimitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (rateLimitTimeoutRef.current) {
+        clearTimeout(rateLimitTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let isCurrent = true;
@@ -76,7 +86,7 @@ function App() {
   const isApiKeyChecking = apiKeyStatus === 'checking';
 
   async function runAnalysis() {
-    if (!selectedFile || !hasStoredApiKey || isApiKeyChecking || status === 'analyzing') {
+    if (!selectedFile || !hasStoredApiKey || isApiKeyChecking || status === 'analyzing' || isRateLimited) {
       return;
     }
 
@@ -85,6 +95,14 @@ function App() {
       return; // Rate limit: prevent spamming requests
     }
     lastAnalysisTimeRef.current = now;
+    setIsRateLimited(true);
+
+    if (rateLimitTimeoutRef.current) {
+      clearTimeout(rateLimitTimeoutRef.current);
+    }
+    rateLimitTimeoutRef.current = setTimeout(() => {
+      setIsRateLimited(false);
+    }, 3000);
 
     setStatus('analyzing');
     setAnalysisError(null);
@@ -214,7 +232,7 @@ function App() {
                 <button
                   className="btn-primary"
                   onClick={runAnalysis}
-                  disabled={!selectedFile || !hasStoredApiKey || isApiKeyChecking || status === 'analyzing'}
+                  disabled={!selectedFile || !hasStoredApiKey || isApiKeyChecking || status === 'analyzing' || isRateLimited}
                 >
                   {status === 'analyzing' ? (
                     <><div className="spinner"></div>Analyzing</>
