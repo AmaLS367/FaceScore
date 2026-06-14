@@ -1,16 +1,30 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import * as tauriHttp from '@tauri-apps/plugin-http';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { invoke } from '@tauri-apps/api/core';
 
 import App from './App';
 
-vi.mock('@tauri-apps/plugin-http', () => ({
-  fetch: vi.fn(),
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn(),
 }));
 
-function mockResponse(response: { ok: boolean; status?: number; json: () => Promise<unknown> }): Response {
-  return response as Response;
+function mockInvoke(options: { hasApiKey?: boolean; analysisPayload?: unknown; analysisError?: string } = {}) {
+  vi.mocked(invoke).mockImplementation(async (command) => {
+    if (command === 'has_api_key') {
+      return options.hasApiKey ?? false;
+    }
+    if (command === 'save_api_key' || command === 'clear_api_key') {
+      return undefined;
+    }
+    if (command === 'analyze_face') {
+      if (options.analysisError) {
+        throw options.analysisError;
+      }
+      return options.analysisPayload ?? { content: [] };
+    }
+    throw new Error(`Unexpected command: ${command}`);
+  });
 }
 
 async function saveApiKey(user: ReturnType<typeof userEvent.setup>) {
@@ -28,6 +42,10 @@ async function uploadPhoto(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('FaceScore MVP acceptance regressions', () => {
+  beforeEach(() => {
+    mockInvoke();
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -45,6 +63,20 @@ describe('FaceScore MVP acceptance regressions', () => {
     await uploadPhoto(user);
 
     expect(screen.getByRole('button', { name: /Analyze face/i })).toBeDisabled();
+  });
+
+  it('enables analysis after restart when the OS credential store has a key', async () => {
+    mockInvoke({ hasApiKey: true });
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await uploadPhoto(user);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Analyze face/i })).toBeEnabled();
+    });
+    expect(screen.queryByText(/Add your Anthropic API key to enable analysis/i)).not.toBeInTheDocument();
   });
 
   it('keeps analyze disabled when only an API key is saved', async () => {
@@ -66,11 +98,9 @@ describe('FaceScore MVP acceptance regressions', () => {
   });
 
   it('shows a clear API error and leaves the report empty on Claude API failure', async () => {
-    vi.mocked(tauriHttp.fetch).mockResolvedValue(mockResponse({
-      ok: false,
-      status: 500,
-      json: async () => ({ error: { message: 'server error' } }),
-    }));
+    mockInvoke({
+      analysisError: 'Analysis service rejected the request (500). Please try again later.',
+    });
 
     const user = userEvent.setup();
     render(<App />);
@@ -84,12 +114,11 @@ describe('FaceScore MVP acceptance regressions', () => {
   });
 
   it('renders a fallback report for partial Claude JSON', async () => {
-    vi.mocked(tauriHttp.fetch).mockResolvedValue(mockResponse({
-      ok: true,
-      json: async () => ({
+    mockInvoke({
+      analysisPayload: {
         content: [{ type: 'tool_use', name: 'generate_report', input: { overallScore: 100 } }],
-      }),
-    }));
+      },
+    });
 
     const user = userEvent.setup();
     render(<App />);

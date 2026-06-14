@@ -4,7 +4,7 @@ import { ApiKeySettings } from './components/ApiKeySettings';
 import { PhotoUploader } from './components/PhotoUploader';
 import { ReportView } from './components/ReportView';
 import type { AnalysisReport } from './domain/analysis';
-import { clearApiKey, loadApiKey, saveApiKey } from './lib/apiKeyStore';
+import { clearApiKey, hasApiKey, saveApiKey, type ApiKeyStatus } from './lib/apiKeyStore';
 import { toClaudeImagePayload } from './lib/imageFiles';
 import { analyzeFace } from './services/anthropicClient';
 
@@ -14,12 +14,32 @@ function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [apiKey, setApiKey] = useState(() => loadApiKey());
+  const [apiKeyStatus, setApiKeyStatus] = useState<ApiKeyStatus>('checking');
   const [status, setStatus] = useState<AnalysisStatus>('idle');
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [report, setReport] = useState<AnalysisReport | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    hasApiKey()
+      .then((hasStoredKey) => {
+        if (isCurrent) {
+          setApiKeyStatus(hasStoredKey ? 'present' : 'missing');
+        }
+      })
+      .catch(() => {
+        if (isCurrent) {
+          setApiKeyStatus('missing');
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -50,11 +70,13 @@ function App() {
     }
   }, [darkMode]);
 
-  const abortControllerRef = useRef<AbortController | null>(null);
   const lastAnalysisTimeRef = useRef<number>(0);
+  const analysisRunIdRef = useRef<number>(0);
+  const hasStoredApiKey = apiKeyStatus === 'present';
+  const isApiKeyChecking = apiKeyStatus === 'checking';
 
   async function runAnalysis() {
-    if (!selectedFile || !apiKey || status === 'analyzing') {
+    if (!selectedFile || !hasStoredApiKey || isApiKeyChecking || status === 'analyzing') {
       return;
     }
 
@@ -67,29 +89,27 @@ function App() {
     setStatus('analyzing');
     setAnalysisError(null);
 
-    abortControllerRef.current = new AbortController();
+    const analysisRunId = ++analysisRunIdRef.current;
 
     try {
       const image = await toClaudeImagePayload(selectedFile);
-      const nextReport = await analyzeFace({ apiKey, image, signal: abortControllerRef.current.signal });
+      const nextReport = await analyzeFace({ image });
+      if (analysisRunId !== analysisRunIdRef.current) {
+        return;
+      }
       setReport(nextReport);
       setStatus('success');
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (analysisRunId !== analysisRunIdRef.current) {
         return;
       }
       setAnalysisError(error instanceof Error ? error.message : 'Analysis failed.');
       setStatus('error');
-    } finally {
-      abortControllerRef.current = null;
     }
   }
 
   const handleReset = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
+    analysisRunIdRef.current += 1;
     setSelectedFile(null);
     setUploadError(null);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -151,14 +171,15 @@ function App() {
                 <div className="sfield-group">
                   <div className="sfield-group-label">API Configuration</div>
                   <ApiKeySettings
-                    apiKey={apiKey}
-                    onChange={(nextApiKey) => {
-                      setApiKey(nextApiKey);
-                      if (nextApiKey) {
-                        saveApiKey(nextApiKey);
-                      } else {
-                        clearApiKey();
-                      }
+                    disabled={isApiKeyChecking}
+                    hasApiKey={hasStoredApiKey}
+                    onClear={async () => {
+                      await clearApiKey();
+                      setApiKeyStatus('missing');
+                    }}
+                    onSave={async (nextApiKey) => {
+                      await saveApiKey(nextApiKey);
+                      setApiKeyStatus('present');
                     }}
                   />
                 </div>
@@ -193,7 +214,7 @@ function App() {
                 <button
                   className="btn-primary"
                   onClick={runAnalysis}
-                  disabled={!selectedFile || !apiKey || status === 'analyzing'}
+                  disabled={!selectedFile || !hasStoredApiKey || isApiKeyChecking || status === 'analyzing'}
                 >
                   {status === 'analyzing' ? (
                     <><div className="spinner"></div>Analyzing</>
@@ -204,11 +225,13 @@ function App() {
                     New Analysis
                   </button>
                 )}
-                {!apiKey && (
+                {!hasStoredApiKey && (
                   <div className="api-nudge">
                     <div className="api-nudge-text">
-                      Add your Anthropic API key to enable analysis.{' '}
-                      <button className="api-nudge-link" onClick={() => setShowSettings(true)}>Set key →</button>
+                      {isApiKeyChecking ? 'Checking stored Anthropic API key...' : 'Add your Anthropic API key to enable analysis.'}{' '}
+                      {!isApiKeyChecking && (
+                        <button className="api-nudge-link" onClick={() => setShowSettings(true)}>Set key →</button>
+                      )}
                     </div>
                   </div>
                 )}

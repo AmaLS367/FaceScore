@@ -1,29 +1,26 @@
-let memoryApiKey = '';
+import { invoke } from '@tauri-apps/api/core';
 
-export function loadApiKey(): string {
-  return memoryApiKey;
-}
+export type ApiKeyStatus = 'checking' | 'present' | 'missing';
 
 export function isValidApiKeyFormat(key: string): boolean {
   // Best practice: Anthropic keys start with sk-ant- (or specifically sk-ant-api03-)
   return /^sk-ant-[a-zA-Z0-9\-_]{16,128}$/.test(key);
 }
 
-export function saveApiKey(apiKey: string): void {
-  const trimmed = apiKey.trim();
+export async function hasApiKey(): Promise<boolean> {
+  return invoke<boolean>('has_api_key');
+}
 
-  if (!trimmed) {
-    clearApiKey();
-    return;
-  }
+export async function saveApiKey(apiKey: string): Promise<void> {
+  const trimmed = apiKey.trim();
 
   if (!isValidApiKeyFormat(trimmed)) {
     throw new Error('Invalid API key format');
   }
 
-  memoryApiKey = trimmed;
+  await invoke('save_api_key', { key: trimmed });
 }
 
-export function clearApiKey(): void {
-  memoryApiKey = '';
+export async function clearApiKey(): Promise<void> {
+  await invoke('clear_api_key');
 }
