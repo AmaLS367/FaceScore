@@ -4,6 +4,16 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { ApiKeySettings } from './ApiKeySettings';
 
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn(async (command, args?: unknown) => {
+    if (command === 'validate_api_key_format') {
+      const keyObj = args as { key?: string } | undefined;
+      return keyObj?.key?.startsWith('sk-ant-') ?? false;
+    }
+    return undefined;
+  }),
+}));
+
 describe('ApiKeySettings', () => {
   it('saves edited API keys', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);

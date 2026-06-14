@@ -20,12 +20,14 @@ export function ApiKeySettings({ disabled = false, hasApiKey, onClear, onSave }:
       await handleClear();
       return;
     }
-    if (!isValidApiKeyFormat(trimmed)) {
-      setError('Invalid API key format. It should start with "sk-".');
-      return;
-    }
     setIsSaving(true);
     try {
+      const isValid = await isValidApiKeyFormat(trimmed);
+      if (!isValid) {
+        setError('Invalid API key format. It should start with "sk-ant-".');
+        setIsSaving(false);
+        return;
+      }
       await onSave(trimmed);
       setDraft('');
       setError(null);

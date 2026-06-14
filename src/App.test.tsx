@@ -11,12 +11,16 @@ vi.mock('@tauri-apps/api/core', () => ({
 }));
 
 function mockInvoke(options: { hasApiKey?: boolean; analysisPayload?: unknown } = {}) {
-  vi.mocked(invoke).mockImplementation(async (command) => {
+  vi.mocked(invoke).mockImplementation(async (command, args?: unknown) => {
     if (command === 'has_api_key') {
       return options.hasApiKey ?? false;
     }
     if (command === 'save_api_key' || command === 'clear_api_key') {
       return undefined;
+    }
+    if (command === 'validate_api_key_format') {
+      const keyObj = args as { key?: string } | undefined;
+      return keyObj?.key?.startsWith('sk-ant-') ?? false;
     }
     if (command === 'analyze_face') {
       return options.analysisPayload ?? { content: [] };

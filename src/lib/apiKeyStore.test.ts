@@ -27,9 +27,11 @@ describe('apiKeyStore', () => {
     expect(invoke).toHaveBeenCalledWith('save_api_key', { key: 'sk-ant-testkey-1234567890' });
   });
 
-  it('rejects invalid API key formats before invoking Tauri', async () => {
+  it('rejects invalid API key formats via Tauri', async () => {
+    vi.mocked(invoke).mockRejectedValueOnce('Invalid API key format');
+
     await expect(saveApiKey('invalid')).rejects.toThrow('Invalid API key format');
-    expect(invoke).not.toHaveBeenCalled();
+    expect(invoke).toHaveBeenCalledWith('save_api_key', { key: 'invalid' });
   });
 
   it('clears the stored API key via Tauri', async () => {

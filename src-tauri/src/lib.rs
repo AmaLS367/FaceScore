@@ -220,6 +220,11 @@ fn build_anthropic_request(image: &ClaudeImagePayload, prompt: &str) -> Value {
     })
 }
 
+#[tauri::command]
+fn validate_api_key_format(key: String) -> bool {
+    is_valid_api_key_format(key.trim())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -228,7 +233,8 @@ pub fn run() {
             analyze_face,
             clear_api_key,
             has_api_key,
-            save_api_key
+            save_api_key,
+            validate_api_key_format
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
