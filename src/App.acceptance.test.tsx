@@ -50,10 +50,14 @@ describe('FaceScore MVP acceptance regressions', () => {
     vi.clearAllMocks();
   });
 
-  it('does not show PDF export before a successful analysis', () => {
+  it('does not show PDF export before a successful analysis', async () => {
     render(<App />);
 
     expect(screen.queryByRole('button', { name: /Export PDF/i })).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Checking stored Anthropic API key/i)).not.toBeInTheDocument();
+    });
   });
 
   it('keeps analyze disabled when only a photo is selected', async () => {
