@@ -1,5 +1,7 @@
 import type { AnalysisReport, Recommendation } from '../domain/analysis';
 import { useState } from 'react';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface ReportViewProps {
   report: AnalysisReport;
@@ -16,12 +18,46 @@ const priorityLabel: Record<Recommendation['priority'], string> = {
 const glyphs = ['✧', '◇', '◎', '▽', '○'];
 
 export function ReportView({ report, imageUrl, onReset }: ReportViewProps) {
+  const [isExporting, setIsExporting] = useState(false);
   const [exported, setExported] = useState(false);
 
-  const handleExport = () => {
-    setExported(true);
-    setTimeout(() => setExported(false), 2400);
-    window.print();
+  const handleExport = async () => {
+    const element = document.querySelector('.report-body') as HTMLElement;
+    if (!element) return;
+
+    setIsExporting(true);
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+
+      const pdfWidth = 210;
+      const pdfHeight = (imgHeight * pdfWidth) / imgWidth;
+
+      const pdf = new jsPDF({
+        orientation: pdfHeight > pdfWidth ? 'portrait' : 'landscape',
+        unit: 'mm',
+        format: [pdfWidth, pdfHeight]
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`${reportId}-FaceScore-Report.pdf`);
+
+      setExported(true);
+      setTimeout(() => setExported(false), 2400);
+    } catch (error) {
+      console.error('Failed to export PDF:', error);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const [reportId] = useState(() => `FA-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100)}`);
@@ -168,8 +204,8 @@ export function ReportView({ report, imageUrl, onReset }: ReportViewProps) {
         </div>
         <div className="export-bar-actions">
           <button className="btn-new" onClick={onReset}>New Analysis</button>
-          <button className="btn-export" onClick={handleExport}>
-            {exported ? "Exported ✓" : "↓ Export PDF"}
+          <button className="btn-export" onClick={handleExport} disabled={isExporting}>
+            {isExporting ? "Generating..." : exported ? "Exported ✓" : "↓ Export PDF"}
           </button>
         </div>
       </div>

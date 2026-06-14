@@ -6,6 +6,24 @@ import { invoke } from '@tauri-apps/api/core';
 import App from './App';
 import { fixtureReport } from './domain/fixtureReport';
 
+const mockSave = vi.fn();
+const mockAddImage = vi.fn();
+
+vi.mock('jspdf', () => ({
+  jsPDF: class {
+    addImage = mockAddImage;
+    save = mockSave;
+  },
+}));
+
+vi.mock('html2canvas', () => ({
+  default: vi.fn().mockResolvedValue({
+    toDataURL: () => 'data:image/png;base64,mock',
+    width: 800,
+    height: 1200,
+  }),
+}));
+
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
 }));
@@ -61,7 +79,6 @@ describe('App', () => {
   });
 
   it('runs the full mocked analysis workflow', async () => {
-    vi.spyOn(window, 'print').mockImplementation(() => undefined);
     mockInvoke({
       analysisPayload: {
         content: [{ type: 'tool_use', name: 'generate_report', input: fixtureReport }],
@@ -91,6 +108,6 @@ describe('App', () => {
     expect(JSON.stringify(vi.mocked(invoke).mock.calls.filter(([command]) => command === 'analyze_face'))).not.toContain('sk-ant-');
     expect(screen.getByRole('button', { name: /Analyze face/i })).toBeDisabled();
     await user.click(screen.getByRole('button', { name: /Export PDF/i }));
-    expect(window.print).toHaveBeenCalledOnce();
+    expect(mockSave).toHaveBeenCalledWith(expect.stringContaining('FaceScore-Report.pdf'));
   });
 });
