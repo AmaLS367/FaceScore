@@ -35,11 +35,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache APT packages
-        uses: awalsh128/cache-apt-pkgs-action@v1
-        with:
-          packages: libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
-          version: 1.0
+      - name: Install Tauri Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config libglib2.0-dev libgtk-3-dev libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev librsvg2-dev patchelf
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
